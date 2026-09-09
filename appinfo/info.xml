@@ -3,8 +3,8 @@
     <id>docsort</id>
     <name>Document sorter</name>
     <name lang="ro">Sortare documente</name>
-    <summary>Reads your scanned documents, tells what they are (identity card, birth certificate, invoice, contract …) and files them in folders by kind</summary>
-    <summary lang="ro">Citește documentele scanate, spune ce sunt (carte de identitate, certificat de naștere, factură, contract …) și le așază în dosare după fel</summary>
+    <summary>Reads your scanned documents, tells what they are (identity card, certificate, invoice, contract) and files them by kind</summary>
+    <summary lang="ro">Citește documentele scanate, spune ce sunt (buletin, certificat, factură, contract) și le așază în dosare după fel</summary>
     <description><![CDATA[
 Drop scans, photos and PDFs into an inbox folder. The app reads the text of each one (pdftotext
 for PDFs with text, RapidOCR — neural text recognition — for pictures and scans), recognises the
