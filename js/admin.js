@@ -5,15 +5,59 @@
 	var rules = OCP.InitialState.loadState('docsort', 'rules');
 	var custom = OCP.InitialState.loadState('docsort', 'custom');
 	var python = OCP.InitialState.loadState('docsort', 'python');
+	var reader = OCP.InitialState.loadState('docsort', 'reader');
+	var pollTimer = null;
 	function status(text, cls) { var el = $('docsort-rules-status'); el.textContent = text; el.className = 'docsort-status ' + (cls || ''); }
 	function show() {
 		$('docsort-rules').value = JSON.stringify(rules, null, 2);
-		$('docsort-python').textContent = t('Documents are read with {python} (RapidOCR for pictures and scans, pdftotext for PDFs with text). {rules}', { python: python, rules: custom ? t('The rules below are yours.') : t('The rules below are the built-in ones.') });
+		$('docsort-python').textContent = custom ? t('The rules below are yours.') : t('The rules below are the built-in ones.');
 	}
 	function post(url, body) {
 		return fetch(OC.generateUrl('/apps/docsort' + url), { method: 'POST', headers: { 'Content-Type': 'application/json', requesttoken: OC.requestToken }, body: JSON.stringify(body) })
 			.then(function (r) { if (!r.ok) { throw new Error('http ' + r.status); } return r.json(); });
 	}
+	function call(method, url) {
+		return fetch(OC.generateUrl('/apps/docsort' + url), { method: method, headers: { requesttoken: OC.requestToken } })
+			.then(function (r) { return r.json().then(function (d) { if (!r.ok && !d.error) { throw new Error('http ' + r.status); } return d; }); });
+	}
+
+	function showReader() {
+		var st = reader.reader, ins = st.install, el = $('docsort-reader-status'), log = $('docsort-reader-log'), note = $('docsort-reader-note');
+		var busy = ins.state === 'queued' || ins.state === 'running';
+		var text;
+		if (st.installed) {
+			text = t('The reader is installed: {python}', { python: st.python });
+		} else if (reader.external) {
+			text = t('Documents are read with {python} (a reader outside the app); the app can install its own instead.', { python: reader.python });
+		} else if (!st.canInstall) {
+			text = st.reason;
+		} else {
+			text = t('The reader is not installed yet: pictures and PDFs are not read until it is. Python {v} at {p} will build it.', { v: st.systemPythonVersion, p: st.systemPython });
+		}
+		el.textContent = text;
+		el.className = st.installed || reader.external ? 'docsort-ok' : (st.canInstall ? 'docsort-warn' : 'docsort-error');
+		$('docsort-reader-install').hidden = st.installed || !st.canInstall || busy;
+		$('docsort-reader-install').textContent = ins.state === 'failed' ? t('Try again') : t('Install the reader');
+		$('docsort-reader-remove').hidden = !st.installed || busy;
+		if (ins.state === 'queued') { note.textContent = t('Waiting for the background job to start (usually within five minutes) …'); note.className = 'docsort-status'; }
+		else if (ins.state === 'running') { note.textContent = t('Installing: {step} …', { step: ins.step }); note.className = 'docsort-status'; }
+		else if (ins.state === 'failed') { note.textContent = t('The installation failed: {error}', { error: ins.error }); note.className = 'docsort-status error'; }
+		else if (ins.state === 'done' && st.installed) { note.textContent = t('Installed.'); note.className = 'docsort-status ok'; }
+		else { note.textContent = ''; }
+		log.hidden = !ins.log || (!busy && ins.state !== 'failed');
+		log.textContent = ins.log || '';
+		if (busy) {
+			if (!pollTimer) { pollTimer = setInterval(function () { call('GET', '/api/admin/reader').then(function (d) { reader = d; showReader(); }); }, 4000); }
+		} else if (pollTimer) { clearInterval(pollTimer); pollTimer = null; show(); }
+	}
+	$('docsort-reader-install').addEventListener('click', function () {
+		$('docsort-reader-note').textContent = t('Starting …');
+		call('POST', '/api/admin/reader').then(function (d) { reader = d; if (d.error) { $('docsort-reader-note').textContent = d.error; } showReader(); }).catch(function () { $('docsort-reader-note').textContent = t('Could not start the installation.'); });
+	});
+	$('docsort-reader-remove').addEventListener('click', function () {
+		if (!window.confirm(t('Remove the reader and install it again?'))) { return; }
+		call('DELETE', '/api/admin/reader').then(function (d) { reader = d; showReader(); });
+	});
 	$('docsort-rules-save').addEventListener('click', function () {
 		var parsed;
 		try { parsed = JSON.parse($('docsort-rules').value); } catch (e) { status(t('This is not valid JSON: {e}', { e: e.message }), 'error'); return; }
@@ -32,4 +76,5 @@
 		}).catch(function () { $('docsort-test-result').textContent = t('The check failed.'); });
 	});
 	show();
+	showReader();
 })();

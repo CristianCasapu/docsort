@@ -7,6 +7,7 @@ declare(strict_types=1);
 <div id="docsort-personal" class="section docsort">
 	<h2><?php p($l->t('Document sorter')); ?></h2>
 	<p class="settings-hint"><?php p($l->t('Put scans, photos and PDFs of your papers into the inbox folder. Every quarter of an hour they are read, recognised (identity card, birth certificate, invoice, contract …), tagged and filed into folders by kind. The text is never stored, only what the document is.')); ?></p>
+	<p class="docsort-warn" id="docsort-noreader" hidden><?php p($l->t('Pictures and PDFs are not read on this server yet: the administrator has to install the document reader (Administration settings › Document sorter). Office files and plain text are sorted anyway.')); ?></p>
 	<p><label class="docsort-check"><input type="checkbox" id="docsort-enabled"> <?php p($l->t('Sort my documents')); ?></label></p>
 	<div class="docsort-field"><label for="docsort-inbox"><?php p($l->t('Inbox folders (one per line, relative to your files)')); ?></label><textarea id="docsort-inbox" rows="2"></textarea></div>
 	<div class="docsort-field"><label for="docsort-destination"><?php p($l->t('Where sorted documents go')); ?></label><input type="text" id="docsort-destination"></div>

@@ -27,7 +27,7 @@ final class Settings
         'language' => 'ro',
     ];
 
-    public function __construct(private IAppConfig $config, private IUserConfig $userConfig) {}
+    public function __construct(private IAppConfig $config, private IUserConfig $userConfig, private PythonEnv $env) {}
 
     /** @return array<string, mixed> */
     public function forUser(string $uid): array
@@ -152,11 +152,53 @@ final class Settings
         return $out;
     }
 
-    /** The Python of the Recognize fork's environment (RapidOCR lives there), unless told otherwise. */
+    /**
+     * The Python that reads the documents: the app's own environment (installed from the
+     * administration page), else the administrator's choice, else the one of the Recognize
+     * fork (RapidOCR lives there too), else whatever "python3" is.
+     */
     public function pythonBinary(): string
     {
+        if ($this->env->isInstalled()) {
+            return $this->env->python();
+        }
+        $external = $this->externalReader();
+
+        return '' !== $external ? $external : 'python3';
+    }
+
+    /** A reader that is not the app's own environment: the administrator's, or Recognize's. */
+    public function hasExternalReader(): bool
+    {
+        return '' !== $this->externalReader();
+    }
+
+    /** Is there any Python to run the reader with? (whether it has RapidOCR shows only when it runs) */
+    public function readerReady(): bool
+    {
+        if ($this->env->isInstalled() || $this->hasExternalReader()) {
+            return true;
+        }
+        [$system] = $this->env->systemPython();
+
+        return '' !== $system;
+    }
+
+    /** A writable HOME for the reader (the OCR package keeps a small cache there). */
+    public function readerHome(): string
+    {
+        if ($this->env->isInstalled()) {
+            return $this->env->dir();
+        }
+        $home = getenv('HOME');
+
+        return \is_string($home) && '' !== $home && is_writable($home) ? $home : sys_get_temp_dir();
+    }
+
+    private function externalReader(): string
+    {
         $own = trim($this->config->getValueString(Application::APP_ID, 'pythonBinary', ''));
-        if ('' !== $own) {
+        if ('' !== $own && is_executable($own)) {
             return $own;
         }
         $recognize = trim($this->config->getValueString('recognize', 'python_binary', '', lazy: true));
@@ -164,6 +206,6 @@ final class Settings
             return $recognize;
         }
 
-        return 'python3';
+        return '';
     }
 }

@@ -11,5 +11,8 @@ return [
         ['name' => 'admin#rules', 'url' => '/api/admin/rules', 'verb' => 'GET'],
         ['name' => 'admin#setRules', 'url' => '/api/admin/rules', 'verb' => 'POST'],
         ['name' => 'admin#test', 'url' => '/api/admin/test', 'verb' => 'POST'],
+        ['name' => 'admin#reader', 'url' => '/api/admin/reader', 'verb' => 'GET'],
+        ['name' => 'admin#installReader', 'url' => '/api/admin/reader', 'verb' => 'POST'],
+        ['name' => 'admin#removeReader', 'url' => '/api/admin/reader', 'verb' => 'DELETE'],
     ],
 ];

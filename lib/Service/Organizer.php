@@ -109,6 +109,11 @@ final class Organizer
             $out['engine'] = $read['engine'];
             $decision = Classifier::classify($read['text'], $rules);
             unset($read); // the text goes no further
+        } catch (ReaderMissingException $e) {
+            // nothing is remembered: the file is read once the reader is installed
+            $out['error'] = $e->getMessage();
+
+            return $out;
         } catch (\Throwable $e) {
             $out['error'] = $e->getMessage();
             if (!$dryRun) {

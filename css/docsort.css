@@ -9,3 +9,8 @@
 .docsort th, .docsort td { padding: 4px 8px; border-bottom: 1px solid var(--color-border); text-align: left; }
 .docsort td.unknown { color: var(--color-text-maxcontrast); }
 .docsort td.error { color: var(--color-error); }
+.docsort .docsort-ok { color: var(--color-success); }
+.docsort .docsort-warn { color: var(--color-warning); }
+.docsort .docsort-error { color: var(--color-error); }
+.docsort .docsort-log { max-width: 900px; max-height: 240px; overflow: auto; font-size: 12px; background: var(--color-background-dark); padding: 8px; border-radius: var(--border-radius); white-space: pre-wrap; }
+.docsort [hidden] { display: none !important; }

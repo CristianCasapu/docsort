@@ -14,7 +14,7 @@ property, health, education, work, utilities, insurance …), tags it and moves 
 Documents/<category>/<kind>/. The rules are plain keyword lists, in Romanian and English, that
 the administrator can extend. The text of a document is never stored: only its kind.
     ]]></description>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <licence>agpl</licence>
     <author mail="casapucristian@gmail.com">Cristian Casapu</author>
     <namespace>DocSort</namespace>
@@ -33,6 +33,7 @@ the administrator can extend. The text of a document is never stored: only its k
     <commands>
         <command>OCA\DocSort\Command\Scan</command>
         <command>OCA\DocSort\Command\Classify</command>
+        <command>OCA\DocSort\Command\Install</command>
     </commands>
     <settings>
         <admin>OCA\DocSort\Settings\Admin</admin>

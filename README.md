@@ -40,6 +40,20 @@ Nothing is installed on top of the [Recognize fork](https://github.com/CristianC
 environment (`occ recognize:install-insightface` creates it; `occ idregister:install-ocr` adds
 RapidOCR).
 
+## Installing the reader
+
+Pictures and PDFs are read by a small Python program. The app installs it by itself:
+Administration settings › **Document sorter** › **Install the reader**. A background job builds
+a virtual environment in the data directory (`appdata_<id>/docsort/python`) with RapidOCR
+(neural text recognition), pypdfium2 (PDF text and rendering) and OpenCV — about 150 MB of
+pre-built packages, no compiler, nothing outside the data directory. The only thing the server
+needs is Python 3.8 or newer (`python3`); a setup check in Administration › Overview says so
+when it is missing.
+
+Office files and plain text are read in PHP and sort without the reader. `occ docsort:install`
+does the same installation from a terminal, `occ docsort:install --remove` starts over. An
+existing Python with RapidOCR can be pointed at with the app setting `pythonBinary` instead.
+
 ## Settings
 
 *Personal settings › Document sorter*: switch it on, inbox folders, destination, what to do with

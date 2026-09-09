@@ -18,7 +18,10 @@ final class Application extends App implements IBootstrap
         parent::__construct(self::APP_ID);
     }
 
-    public function register(IRegistrationContext $context): void {}
+    public function register(IRegistrationContext $context): void
+    {
+        $context->registerSetupCheck(\OCA\DocSort\SetupChecks\ReaderCheck::class);
+    }
 
     public function boot(IBootContext $context): void {}
 }

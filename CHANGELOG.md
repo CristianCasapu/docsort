@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file. The format foll
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [semantic versioning](https://semver.org/).
 
+## [1.1.0] – 2026-09-10
+
+### Added
+- The app installs its own document reader from the administration page: one button builds a
+  Python environment in the data directory with RapidOCR, pypdfium2 and OpenCV (pre-built
+  wheels only, about 150 MB) and checks it. A setup check in Administration › Overview says
+  when it is missing, and the personal page tells people what is not read yet. `occ
+  docsort:install` does the same from a terminal; `--remove` starts over.
+- PDFs are read with pypdfium2, so poppler (`pdftotext`, `pdftoppm`) is no longer needed;
+  it is still used when it is there and pypdfium2 is not.
+- Office files and plain text are read in PHP and sort even without the reader.
+
+### Changed
+- A file that could not be read only because the reader is missing is not remembered as an
+  error: it is read as soon as the reader is installed.
+- Either RapidOCR package works (`rapidocr_onnxruntime` up to Python 3.12, `rapidocr` after).
+
 ## [1.0.0] – 2026-09-09
 
 First release.

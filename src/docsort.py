@@ -4,11 +4,12 @@ The text of a document, for sorting it by what it is — "Document sorter" for N
 
   docsort.py <file> [--pages N] [--lang ro]
 
-prints one JSON object: {"text": "...", "pages": n, "engine": "pdftotext|rapidocr|zip|plain", "chars": n}
+prints one JSON object: {"text": "...", "pages": n, "engine": "pdf|rapidocr|zip|plain", "chars": n}
 
-PDF:     pdftotext (poppler) when the PDF carries text; otherwise the first pages are rendered
-         with pdftoppm and read with RapidOCR (PaddleOCR PP-OCRv4 models on ONNX Runtime).
+PDF:     pypdfium2 (or pdftotext) when the PDF carries text; otherwise the first pages are
+         rendered (pypdfium2 or pdftoppm) and read with RapidOCR (PaddleOCR models on ONNX Runtime).
 Images:  RapidOCR.
+Exit code 3: the OCR engine is not installed (the app then asks the administrator to install it).
 Office:  the XML inside .docx/.odt/.pptx/.xlsx (no external program).
 Text:    read as is.
 Nothing is written anywhere except a temporary folder that is removed at the end.
@@ -31,6 +32,17 @@ def run(cmd, timeout=120):
 
 def pdf_text(path, pages):
     try:
+        import pypdfium2 as pdfium
+        doc = pdfium.PdfDocument(path)
+        try:
+            return '\n'.join(doc[i].get_textpage().get_text_range() for i in range(min(pages, len(doc))))
+        finally:
+            doc.close()
+    except ImportError:
+        pass
+    except Exception as e:  # noqa: BLE001
+        sys.stderr.write('pypdfium2 text failed: %s\n' % e)
+    try:
         r = run(['pdftotext', '-l', str(pages), '-layout', '-enc', 'UTF-8', path, '-'])
         if r.returncode == 0:
             return r.stdout.decode('utf-8', 'replace')
@@ -40,6 +52,22 @@ def pdf_text(path, pages):
 
 
 def pdf_render(path, pages, tmp):
+    """The first pages as pictures (paths, or numpy arrays with pypdfium2)."""
+    try:
+        import pypdfium2 as pdfium
+        doc = pdfium.PdfDocument(path)
+        try:
+            out = []
+            for i in range(min(pages, len(doc))):
+                bitmap = doc[i].render(scale=200 / 72)
+                out.append(bitmap.to_numpy()[:, :, :3][:, :, ::-1].copy())  # BGR for OpenCV
+            return out
+        finally:
+            doc.close()
+    except ImportError:
+        pass
+    except Exception as e:  # noqa: BLE001
+        sys.stderr.write('pypdfium2 render failed: %s\n' % e)
     try:
         r = run(['pdftoppm', '-r', '200', '-f', '1', '-l', str(pages), '-png', path, os.path.join(tmp, 'p')])
         if r.returncode != 0:
@@ -52,17 +80,40 @@ def pdf_render(path, pages, tmp):
 _engine = None
 
 
+def load_engine():
+    """RapidOCR, whichever package is installed: the ONNX Runtime build (Python < 3.13) or the newer one."""
+    try:
+        from rapidocr_onnxruntime import RapidOCR
+    except ImportError:
+        try:
+            from rapidocr import RapidOCR
+        except ImportError:
+            sys.stderr.write('the OCR engine (RapidOCR) is not installed\n')
+            sys.exit(3)
+    return RapidOCR()
+
+
+def read(engine, image):
+    """[(box, text, confidence), ...] whatever the package's output looks like."""
+    out = engine(image)
+    if isinstance(out, tuple):  # rapidocr_onnxruntime: (result, elapse)
+        return out[0] or []
+    boxes = getattr(out, 'boxes', None)
+    if boxes is None:
+        return []
+    return [(b.tolist(), t, float(c)) for b, t, c in zip(boxes, out.txts, out.scores)]
+
+
 def ocr(paths):
     global _engine
     if _engine is None:
-        from rapidocr_onnxruntime import RapidOCR
-        _engine = RapidOCR()
+        _engine = load_engine()
     out = []
     for p in paths:
         try:
-            result, _ = _engine(p)
+            result = read(_engine, p)
         except Exception as e:  # noqa: BLE001
-            sys.stderr.write('ocr failed on %s: %s\n' % (p, e))
+            sys.stderr.write('ocr failed on %s: %s\n' % (p if isinstance(p, str) else 'page', e))
             continue
         if not result:
             continue
@@ -118,7 +169,7 @@ def main():
     try:
         if ext == '.pdf':
             text = pdf_text(path, pages)
-            engine = 'pdftotext'
+            engine = 'pdf'
             if len(re.sub(r'\s+', '', text)) < 80:
                 text, engine = ocr(pdf_render(path, pages, tmp)), 'rapidocr'
         elif ext in ('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.webp', '.gif'):

@@ -37,7 +37,13 @@ final class Classify extends Command
 
             return 1;
         }
-        $read = $this->extractor->textOfPath($path);
+        try {
+            $read = $this->extractor->textOfPath($path);
+        } catch (\RuntimeException $e) {
+            $output->writeln('<error>'.$e->getMessage().'</error>');
+
+            return 1;
+        }
         $decision = Classifier::classify($read['text'], $this->settings->rules());
         $output->writeln(sprintf('read %d characters with %s', $read['chars'], $read['engine']));
         if ((bool) $input->getOption('text')) {

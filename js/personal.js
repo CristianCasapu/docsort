@@ -58,4 +58,5 @@
 
 	fill();
 	renderHistory(history, false);
+	$('docsort-noreader').hidden = !!OCP.InitialState.loadState('docsort', 'readerReady');
 })();
