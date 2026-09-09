@@ -1,0 +1,11 @@
+.docsort .docsort-field { margin: 8px 0; max-width: 640px; }
+.docsort .docsort-field label { display: block; font-weight: 600; margin-bottom: 4px; }
+.docsort .docsort-field input[type="text"], .docsort .docsort-field select, .docsort textarea { width: 100%; max-width: 640px; }
+.docsort textarea#docsort-rules { max-width: 100%; font-family: monospace; font-size: 12px; }
+.docsort .docsort-status { margin-left: 12px; color: var(--color-text-maxcontrast); }
+.docsort .docsort-status.ok { color: var(--color-success); }
+.docsort .docsort-status.error { color: var(--color-error); }
+.docsort table { border-collapse: collapse; margin-top: 8px; width: 100%; max-width: 1000px; }
+.docsort th, .docsort td { padding: 4px 8px; border-bottom: 1px solid var(--color-border); text-align: left; }
+.docsort td.unknown { color: var(--color-text-maxcontrast); }
+.docsort td.error { color: var(--color-error); }

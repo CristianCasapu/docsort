@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>docsort</id>
+    <name>Document sorter</name>
+    <name lang="ro">Sortare documente</name>
+    <summary>Reads your scanned documents, tells what they are (identity card, birth certificate, invoice, contract …) and files them in folders by kind</summary>
+    <summary lang="ro">Citește documentele scanate, spune ce sunt (carte de identitate, certificat de naștere, factură, contract …) și le așază în dosare după fel</summary>
+    <description><![CDATA[
+Drop scans, photos and PDFs into an inbox folder. The app reads the text of each one (pdftotext
+for PDFs with text, RapidOCR — neural text recognition — for pictures and scans), recognises the
+kind of document from what is written on it (identity documents, civil status certificates,
+permits and licences, vehicle papers, invoices and receipts, bank and tax papers, contracts,
+property, health, education, work, utilities, insurance …), tags it and moves it into
+Documents/<category>/<kind>/. The rules are plain keyword lists, in Romanian and English, that
+the administrator can extend. The text of a document is never stored: only its kind.
+    ]]></description>
+    <version>1.0.0</version>
+    <licence>agpl</licence>
+    <author mail="casapucristian@gmail.com">Cristian Casapu</author>
+    <namespace>DocSort</namespace>
+    <category>files</category>
+    <category>organization</category>
+    <website>https://github.com/CristianCasapu/docsort</website>
+    <bugs>https://github.com/CristianCasapu/docsort/issues</bugs>
+    <repository type="git">https://github.com/CristianCasapu/docsort.git</repository>
+    <dependencies>
+        <php min-version="8.1"/>
+        <nextcloud min-version="30" max-version="34"/>
+    </dependencies>
+    <background-jobs>
+        <job>OCA\DocSort\BackgroundJobs\ScanJob</job>
+    </background-jobs>
+    <commands>
+        <command>OCA\DocSort\Command\Scan</command>
+        <command>OCA\DocSort\Command\Classify</command>
+    </commands>
+    <settings>
+        <admin>OCA\DocSort\Settings\Admin</admin>
+        <admin-section>OCA\DocSort\Settings\AdminSection</admin-section>
+        <personal>OCA\DocSort\Settings\Personal</personal>
+        <personal-section>OCA\DocSort\Settings\PersonalSection</personal-section>
+    </settings>
+</info>
